@@ -9,12 +9,16 @@
 #include <errno.h>
 
 #define MAX_ARGS 100
+/**
+ *custom_shell - function
+ */
 void jj(void);
+
 void custom_shell(void)
 {
-	char *read = NULL;
-	size_t read_size = 0;
-	ssize_t read_bytes;
+	char *input = NULL;
+	size_t input_size = 0;
+	ssize_t input_bytes;
 	char *args[MAX_ARGS];
 	int argc = 0;
 	char *arg;
@@ -30,9 +34,9 @@ void custom_shell(void)
 			write(STDOUT_FILENO, "simple_shell$ ", 14);
 		}
 
-		read_bytes = getline(&read, &read_size, stdin);
+		input_bytes = getline(&input, &input_size, stdin);
 
-		if (read_bytes == -1)
+		if (input_bytes == -1)
 		{
 			if (feof(stdin))
 			{
@@ -44,24 +48,24 @@ void custom_shell(void)
 			}
 			else
 			{
-				write(STDERR_FILENO, "read fail\n", 10);
+				write(STDERR_FILENO, "read failed\n", 12);
 				continue;
 			}
 		}
 
-		read[read_bytes - 1] = '\0';
+		input[input_bytes - 1] = '\0';
 
-		if (strlen(read) == 0)
+		if (strlen(input) == 0)
 		{
 			continue;
 		}
 
-		if (read[0] == '#')
+		if (input[0] == '#')
 		{
 			continue;
 		}
 
-		cmd = strtok(read, ";");
+		cmd = strtok(input, ";");
 
 		while (cmd != NULL)
 		{
@@ -81,7 +85,7 @@ void custom_shell(void)
 			{
 				if (argc == 1)
 				{
-					free(read);
+					free(input);
 					exit(exit_status);
 				}
 				else if (argc == 2)
@@ -92,7 +96,7 @@ void custom_shell(void)
 					{
 						status = atoi(args[1]);
 						exit_status = status;
-						free(read);
+						free(input);
 						exit(status);
 					}
 					else
@@ -146,20 +150,17 @@ void custom_shell(void)
 				{
 					char *home_dir = getenv("HOME");
 
-					if (home_dir != NULL)
+					if (home_dir == NULL)
 					{
-						if (chdir(home_dir) != 0)
-						{
-							perror("cd");
-						}
-						else
-						{
-							setenv("PWD", home_dir, 1);
-						}
+						write(STDERR_FILENO, "cd: HOME not set\n", 17);
+					}
+					else if (chdir(home_dir) != 0)
+					{
+						perror("cd");
 					}
 					else
 					{
-						write(STDERR_FILENO, "cd: HOME not set\n", 17);
+						setenv("PWD", home_dir, 1);
 					}
 				}
 				else if (argc == 2)
@@ -187,6 +188,6 @@ void custom_shell(void)
 		}
 	}
 
-	free(read);
+	free(input);
 }
 
